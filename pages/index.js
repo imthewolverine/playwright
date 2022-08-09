@@ -17,10 +17,7 @@ export default function Home() {
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+        <video class="k4urcfbm datstx6m a8c37x1j" playsinline="" src="blob:https://www.facebook.com/8e39d66c-a3c8-4983-a433-70cd5b732c28"></video>
 
         <div className={styles.grid}>
           <Link href="/about">

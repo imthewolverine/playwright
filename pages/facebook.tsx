@@ -24,98 +24,44 @@ const timer = (ms: any) => new Promise((res) => setTimeout(res, ms));
 /* ------------------- getStaticProps ------------------- */
 export async function getStaticProps() {
   let myItemList: any = [];
-  let url = "https://www.unegui.mn/avto-mashin/-avtomashin-zarna/";
+  let url = "https://www.facebook.com/groups/MashiniiZar/";
   let urlSelector = '.ll8tlv6m .j83agx80 .btwxx1t3 .n851cfcs .hv4rvrfc .dati1w0a .pybr56ya'
   var count = 0;
-  for(var i = 1; i < 2; i++){
-    var urlList:any = await prepareList(url+'?page=' + i, urlSelector) || '';
-    console.log("urlList = ", urlList.length);
-    if(urlList.length == 0) break;
+  var urlList:any = await prepareList(url, urlSelector) || '';
+  await timer(1000);
+  //urlList ||
+  for (const item of urlList) {
+    console.log("url", item);
+    //myItemList.push(await prepareItemBlock(item));
+    console.log('Ажиллаж байна.', url);   
     await timer(1000);
-    //urlList ||
-    for (const item of urlList) {
-      myItemList.push(await prepareItemBlock(item));
-      console.log('Ажиллаж байна.', item);
-      await timer(1000);
-      count++;
-    }
   }
-  console.log("count:", count);
-  console.log("myItemList", myItemList.length);
   return {
     props: { itemList: myItemList },
     revalidate: 10,
   };
 }
 //url list үүсгэж -> done
-const prepareList = async (rawListHTML:any, getSelector:any) => {
+const prepareList = async (rawListHTML:any, urlSelector:any) => {
 
   const browser = await playwright.chromium.launch();
   const data = await browser.newPage();
   await data.goto(rawListHTML);
   await data.waitForTimeout(1000);
-  const myDate = await data.$$('.announcement-block__date');
-  const myList = await data.$$('.announcement-block__title');
-  let urlList: any = [];
+  //const myDate = await data.$$('.announcement-block__date');
+  const myList = await data.$$('.oajrlxb2.g5ia77u1.qu0x051f.esr5mh6w.e9989ue4.r7d6kgcz.rq0escxv.nhd2j8a9.nc684nl6.p7hjln8o.kvgmc6g5.cxmmr5t8.oygrvhab.hcukyx3x.jb3vyjys.rz4wbd8a.qt6c0cv9.a8nywdso.i1ao9s8h.esuyzwwr.f1sip0of.lzcic4wl.gpro0wi8.py34i1dx');
+  let urlList= new Array();
+  console.log("url", rawListHTML);
+  console.log('mylist length = ', myList.length)
   //myList.map(async (item: any, index: number)=>
-
-  //Онгой зар, vip зар нь орж ирээд зөвхөн энгийн зар хэсгээ авч чадахгүй болохоор index=8 гэж эхэлсий 68
-  for (var index = 8; index < 10; index++){
-    let date = new Date("7 26, 2022 12:00");
-    let day, month, year, hour, minute;
-    var dateAvii = (await myDate[index].innerHTML()).trim();
-    //Өдрийг нь л олж байгаан
-    if(dateAvii.search('Өнөөдөр') == 0){
-      year = date.getFullYear();
-      month = ("0" + (date.getMonth() + 1)).slice(-2);
-      day = ("0" + (date.getDate()+1)).slice(-2);
-      hour = dateAvii.slice(8,10);
-      minute = dateAvii.slice(11,13);
-    } else if(dateAvii.search('Өчигдөр') == 0){
-      year = date.getFullYear();
-      month = ("0" + (date.getMonth() + 1)).slice(-2);
-      day = ("0" + (date.getDate())).slice(-2);
-      hour = dateAvii.slice(8,10);
-      minute = dateAvii.slice(11,13);
-    } else {
-      year = dateAvii.slice(0,4);
-      month = dateAvii.slice(5,7);
-      day = dateAvii.slice(8,10);
-      hour = dateAvii.slice(11,13);
-      minute = dateAvii.slice(14,16);
-    }
-    //console.log(index, dateAvii, "link: ", "date utga", day, month, year, hour, minute);
-    //Хэдний хэдэн цаг хүртлэхийг авах
-    let urlDate = new Date(`${month} ${day}, ${year} ${hour}:${minute}`);
-    if(urlDate > date) {
-      urlList.push('https://www.unegui.mn'+ await myList[index].getAttribute('href'));
-    } else {
-      return urlList;
-    }
+  for(var index = 0; index < myList.length; index++) {
+    urlList.push(await myList[index].getAttribute('href'));
+    console.log("fds", await myList[index].getAttribute('href'));
   }
+  
   console.log("prepareItemList urlList", urlList.length);
   return urlList;
 }
-
-//Энэ хэрэггүй юм байнадоо
-/* ---------------------- callPage ---------------------- */
-const callPage = async (url: string, getSelector: any) => {
-  const browser = await playwright.chromium.launch();
-  const data = await browser.newPage();
-  await data.goto(url);
-  await data.waitForTimeout(1000);
-  const wholeData = await data.$$(getSelector)
-  // get id
-  var n = url.lastIndexOf('/');
-  var myId = url.substring(n + 1);
-  let myItemList: any[] = [];
-  wholeData.map((item) => {
-    const itemBlock = prepareItemBlock(item);
-    myItemList.push(itemBlock);
-  });
-
-  return myItemList;
-};
 
 /* ------------------ prepareItemBlock ------------------ */
 const prepareItemBlock = async (rawItemHTML: any) => {
@@ -140,6 +86,7 @@ const prepareItemBlock = async (rawItemHTML: any) => {
         myItem[myConfig.itemConfig[i].name] = list;
         break;
       case 'text':
+        console.log("aaaaa", myConfig.itemConfig[i].class);
         myItem[myConfig.itemConfig[i].name] = (await data.locator(myConfig.itemConfig[i].class).textContent())?.trim() || '';
         break;
       case 'html':
@@ -198,32 +145,8 @@ const prepareItemBlock = async (rawItemHTML: any) => {
   return myItem;
 };
 
-const unaaConfigs = {
-  project: 'unaa',
-  url: 'https://unaa.mn/suudlyin/honda/',
-  itemBlockClass: '.listing__item',
-  itemConfig: [
-    {
-      name: 'photo',
-      class: '.listing__item__photo',
-      callType: 'style.background.url',
-    },
-
-    { name: 'title', class: '.listing__item__title', callType: 'text' },
-    { name: 'year', class: '.listing__item__year', callType: 'text' },
-    {
-      name: 'description',
-      class: '.listing__item__description',
-      callType: 'text',
-    },
-    { name: 'price', class: '.listing__item__price', callType: 'text' },
-    { name: 'detail', class: '.listing__item__detail', callType: 'text' },
-  ],
-};
-
-const uneguiConfigs = {
+const facebookConfigs = {
   project: 'unegui.mn',
-  url: 'https://www.unegui.mn/adv/6239439_toyota-land-cruiser-200-2018-2018/',
   itemBlockClass: '._somon',
   replaceAllText: {
     // original: '/uploads',
@@ -232,26 +155,13 @@ const uneguiConfigs = {
     changeText: '',
   },
   itemConfig: [
-    {name: 'title', class: '.title-announcement', callType: 'text',},
-    {name: 'date', class: '.date-meta', callType: 'text'},
+    {name: 'title', class: '.gmql0nx0.l94mrbxd.p1ri9a11.lzcic4wl.aahdfvyu.hzawbc8m', callType: 'text',},
+    {name: 'date', class: '.d2edcug0.hpfvmrgz.qv66sw1b.c1et5uql.lr9zc1uh.a8c37x1j.fe6kdd0r.mau55g9w.c8b282yb.keod5gw0.nxhoafnm.aigsh9s9.d9wwppkn.mdeji52x.e9vueds3.j5wam9gi.b1v8xokw.m9osqain.hzawbc8m', callType: 'text'},
     //энэ 1 л зураг гаргаж байгаа доод талых нь гоё{ name: 'images', class: '.announcement__images', callType: 'img.src' },
-    {name: 'imagesList', class: '.announcement__images-item', callType: 'img.srcList'},
-    {name: 'price', class: '.announcement-price__cost', callType: 'text' },
-    //энэ доор байгаа мэдээллүүд html ээрээ байгаа{ name: 'characteries', class: '.announcement-characteristics', callType: 'html',},
-    {name: "authorName", class: ".author-name", callType: "text"},
-    //доор байсан нэмэлт мэдээлэл
-    {name: "description", class: ".announcement-description", callType: 'text'},
-    {name: 'characteriesKey', class: '.key-chars', callType: 'list'},
-    {name: 'characteriesValue', class: '.value-chars', callType: 'list'},
-    {name: 'characteriesKeyValue', class: '.chars-column li', callType: 'listText'},
-    {name: 'phoneNumber', class: '.contacts-dialog__phone a', callType: 'text'}
-    // { name: 'copyright', class: '.copyright', callType: 'text' },
-    // {
-    //   name: 'image',
-    //   class: '.image',
-    //   callType: 'img.src',
-    // },
+    {name: 'imagesList', class: '.i09qtzwb.n7fi1qx3.datstx6m.pmk7jnqg.j9ispegn.kr520xx4.k4urcfbm', callType: 'img.srcList'},
+    {name: "description", class: ".kvgmc6g5.cxmmr5t8.oygrvhab.hcukyx3x.c1et5uql.ii04i59q", callType: 'text'},
+    {name: "texts", class: ".qzhwtbm6.knvmm38d", callType: "listText"}
   ]
 };
 
-const myConfig = uneguiConfigs;
+const myConfig = facebookConfigs;
